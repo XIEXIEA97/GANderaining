@@ -19,10 +19,9 @@ class AlignedDataset(BaseDataset):
         """
         BaseDataset.__init__(self, opt)
         self.dir_AB = os.path.join(opt.dataroot, opt.phase)  # get the image directory
-        self.AB_paths = sorted(make_dataset(self.dir_AB, opt.max_dataset_size))  # get image paths
-        assert(self.opt.load_size >= self.opt.crop_size)   # crop_size should be smaller than the size of loaded image
-        self.input_nc = self.opt.output_nc if self.opt.direction == 'BtoA' else self.opt.input_nc
-        self.output_nc = self.opt.input_nc if self.opt.direction == 'BtoA' else self.opt.output_nc
+        self.A_dir = os.path.join(opt.dataroot, 'data')
+        self.B_dir = os.path.join(opt.dataroot, 'gt')
+        self.transform = get_transform(opt, grayscale=False)
 
     def __getitem__(self, index):
         """Return a data point and its metadata information.
@@ -37,24 +36,18 @@ class AlignedDataset(BaseDataset):
             B_paths (str) - - image paths (same as A_paths)
         """
         # read a image given a random integer index
-        AB_path = self.AB_paths[index]
-        AB = Image.open(AB_path).convert('RGB')
-        # split AB image into A and B
-        w, h = AB.size
-        w2 = int(w / 2)
-        A = AB.crop((0, 0, w2, h))
-        B = AB.crop((w2, 0, w, h))
+        index = str(index)
+        A_path = os.path.join(self.A_dir, index+'_rain.png')
+        B_path = os.path.join(self.B_dir, index+'_clean.png')
 
-        # apply the same transform to both A and B
-        transform_params = get_params(self.opt, A.size)
-        A_transform = get_transform(self.opt, transform_params, grayscale=(self.input_nc == 1))
-        B_transform = get_transform(self.opt, transform_params, grayscale=(self.output_nc == 1))
+        A_img = Image.open(A_path).convert('RGB')
+        B_img = Image.open(B_path).convert('RGB')
 
-        A = A_transform(A)
-        B = B_transform(B)
+        A = self.transform(A_img)
+        B = self.transform(B_img)
 
-        return {'A': A, 'B': B, 'A_paths': AB_path, 'B_paths': AB_path}
+        return {'A': A, 'B': B, 'A_paths': A_path, 'B_paths': A_path}
 
     def __len__(self):
         """Return the total number of images in the dataset."""
-        return len(self.AB_paths)
+        return len(os.listdir(self.A_dir))

@@ -150,6 +150,8 @@ def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, in
         net = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9)
     elif netG == 'resnet_6blocks':
         net = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6)
+    elif netG == 'transfer':
+        net = TransferNet(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6)
     elif netG == 'unet_128':
         net = UnetGenerator(input_nc, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     elif netG == 'unet_256':
@@ -342,35 +344,41 @@ class ResnetGenerator(nn.Module):
                  norm_layer(ngf),
                  nn.ReLU(True)]
 
-        n_downsampling = 2
+        n_downsampling = 3
         for i in range(n_downsampling):  # add downsampling layers
             mult = 2 ** i
             model += [nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=2, padding=1, bias=use_bias),
                       norm_layer(ngf * mult * 2),
                       nn.ReLU(True)]
 
-        mult = 2 ** n_downsampling
-        for i in range(n_blocks):       # add ResNet blocks
+        #mult = 2 ** n_downsampling
+        #for i in range(n_blocks):       # add ResNet blocks
 
-            model += [ResnetBlock(ngf * mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout, use_bias=use_bias)]
-
+        #    model += [ResnetBlock(ngf * mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout, use_bias=use_bias)]
+        self.model = nn.Sequential(*model)
+        
+        upsample = []
         for i in range(n_downsampling):  # add upsampling layers
             mult = 2 ** (n_downsampling - i)
-            model += [nn.ConvTranspose2d(ngf * mult, int(ngf * mult / 2),
+            upsample += [nn.ConvTranspose2d(ngf * mult, int(ngf * mult / 2),
                                          kernel_size=3, stride=2,
                                          padding=1, output_padding=1,
                                          bias=use_bias),
                       norm_layer(int(ngf * mult / 2)),
                       nn.ReLU(True)]
-        model += [nn.ReflectionPad2d(3)]
-        model += [nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0)]
-        model += [nn.Tanh()]
+        upsample += [nn.ReflectionPad2d(3)]
+        upsample += [nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0)]
+        upsample += [nn.Tanh()]
+        self.upsample = nn.Sequential(*upsample)
 
-        self.model = nn.Sequential(*model)
-
-    def forward(self, input):
+    def forward(self, input, net=None):
         """Standard forward"""
-        return self.model(input)
+        #return self.model(input)
+        image_features = self.model(input)
+        if net is not None:
+            image_features = net(image_features)
+        out = self.upsample(image_features)
+        return out, image_features
 
 
 class ResnetBlock(nn.Module):
@@ -613,3 +621,22 @@ class PixelDiscriminator(nn.Module):
     def forward(self, input):
         """Standard forward."""
         return self.net(input)
+
+class TransferNet(nn.Module):
+    def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, padding_type='reflect'):
+        super(TransferNet, self).__init__()
+        if type(norm_layer) == functools.partial:
+            use_bias = norm_layer.func == nn.InstanceNorm2d
+        else:
+            use_bias = norm_layer == nn.InstanceNorm2d
+        
+        channel_size = 512
+        model = [nn.Conv2d(channel_size, channel_size, kernel_size=3, stride=1, padding=1),
+                 nn.ReLU(),
+                 nn.Conv2d(channel_size, channel_size, kernel_size=3, stride=1, padding=1),
+                 nn.ReLU(),
+                 nn.Conv2d(channel_size, channel_size, kernel_size=3, stride=1, padding=1)]
+        self.model = nn.Sequential(*model)
+
+    def forward(self, input):
+        return self.model(input)
