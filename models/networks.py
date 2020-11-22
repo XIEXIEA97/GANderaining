@@ -382,10 +382,14 @@ class ResnetGenerator(nn.Module):
         return out, image_feature
 
     def get_features_diff(self, inputA, inputB, net=None):
-        A_features = self.model(inputA)
-        B_features = self.model(inputB)
-        diff = A_features - B_features
-        return diff
+        # no backprop calculations required 
+        # so no gradient calculations enabled to free up memory 
+        with torch.no_grad():
+            A_features = self.model(inputA)
+            print(f'size of feature map {A_features.size()}')
+            B_features = self.model(inputB)
+            diff = A_features - B_features
+            return diff
 
 class ResnetBlock(nn.Module):
     """Define a Resnet block"""
