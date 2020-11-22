@@ -45,10 +45,6 @@ if __name__ == '__main__':
 
     diff = None
     for i, data in enumerate(paired_dataset):
-        tensor_a = data.get('A')
-        tensor_b = data.get('B')
-
-        print(f'size of tensor = {tensor_a.size()}')
         model.set_input(data, False)
         if diff == None:
             diff = model.get_feature_diff()
@@ -56,6 +52,7 @@ if __name__ == '__main__':
             val = model.get_feature_diff()
             diff += val
     avg_diff = diff/len(paired_dataset)
+    model.set_noise_diff(avg_diff)
 
     for epoch in range(opt.epoch_count, opt.n_epochs + opt.n_epochs_decay + 1):    # outer loop for different epochs; we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>
         epoch_start_time = time.time()  # timer for entire epoch

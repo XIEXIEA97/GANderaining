@@ -377,16 +377,15 @@ class ResnetGenerator(nn.Module):
         image_features = self.model(input)
         if net is not None:
             image_features = net(image_features)
-        out = self.upsample(image_features)
-        # out = self.upsample(image_features - noise_features)
-        return out, image_feature
+        # out = self.upsample(image_features)
+        out = self.upsample(image_features - noise_features)
+        return out, image_features
 
     def get_features_diff(self, inputA, inputB, net=None):
         # no backprop calculations required 
         # so no gradient calculations enabled to free up memory 
         with torch.no_grad():
             A_features = self.model(inputA)
-            print(f'size of feature map {A_features.size()}')
             B_features = self.model(inputB)
             diff = A_features - B_features
             return diff

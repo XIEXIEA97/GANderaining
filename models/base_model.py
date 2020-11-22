@@ -80,6 +80,11 @@ class BaseModel(ABC):
         """Calculates the difference between two feature_maps"""
         pass
 
+    @abstractmethod
+    def set_noise_diff(self, difference):
+        """Calculates the difference between two feature_maps"""
+        pass
+
     def setup(self, opt):
         """Load and print networks; create schedulers
 

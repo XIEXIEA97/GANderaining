@@ -90,19 +90,19 @@ class Selfmodel(BaseModel):
         # retrieves the module from DataParallel
         module = self.netG.module
         if isinstance(module, ResnetGenerator):
-            self.diff = module.get_features_diff(self.real_A, self.real_B)
-            return self.diff
-        
+            return module.get_features_diff(self.real_A, self.real_B)
+    
+    def set_noise_diff(self, difference):
+        self.diff = difference
 
     def forward(self):
         """Run forward pass; called by both functions <optimize_parameters> and <test>."""
         #self.fake_B = self.netG(self.real_A)  # G(A)
         # def forward(self, input, net=None, noise_noise_features):
         if not self.paired:
-            self.fake_B, _ = self.netG(input=self.real_A, noise_noise_features=[])  # G(A)
-            print(ditto)
+            self.fake_B, _ = self.netG(input=self.real_A, noise_features=self.diff)  # G(A)
         else:
-            self.fake_B, _ = self.netG(self.real_A, self.netT)  # G(A)
+            self.fake_B, _ = self.netG(self.real_A, self.netT, self.diff)  # G(A)
 
     def backward_G(self):
         """Calculate GAN and L1 loss for the generator"""
