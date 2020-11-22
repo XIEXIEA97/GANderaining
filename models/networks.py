@@ -371,7 +371,7 @@ class ResnetGenerator(nn.Module):
         upsample += [nn.Tanh()]
         self.upsample = nn.Sequential(*upsample)
 
-    def forward(self, input, net=None, noise_features):
+    def forward(self, input, net=None, noise_features=[]):
         """Standard forward"""
         #return self.model(input)
         image_features = self.model(input)

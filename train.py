@@ -49,7 +49,7 @@ if __name__ == '__main__':
         # only applicable to single model...
         # paired is not defined in this method
         model.set_input(data, False)
-        diff.append(model.get_features_diff())
+        diff.append(model.get_feature_diff())
 
 # function estimating noise
 

@@ -1,6 +1,7 @@
 import torch
 from .base_model import BaseModel
 from . import networks
+from .networks import ResnetGenerator
 
 
 class Selfmodel(BaseModel):
@@ -85,7 +86,7 @@ class Selfmodel(BaseModel):
         else:
             self.real_B = input['B'].to(self.device)
 
-    def get_features_diff(self):
+    def get_feature_diff(self):
         if isinstance(self.netG, ResnetGenerator):
             self.diff = self.netG.get_features_diff(self.real_A, self.real_B)
             return self.diff
