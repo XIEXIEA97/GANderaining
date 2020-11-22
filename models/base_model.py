@@ -75,6 +75,11 @@ class BaseModel(ABC):
         """Calculate losses, gradients, and update network weights; called in every training iteration"""
         pass
 
+    @abstractmethod
+    def get_feature_diff(self):
+        """Calculates the difference between two feature_maps"""
+        pass
+
     def setup(self, opt):
         """Load and print networks; create schedulers
 

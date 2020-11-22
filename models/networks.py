@@ -371,15 +371,21 @@ class ResnetGenerator(nn.Module):
         upsample += [nn.Tanh()]
         self.upsample = nn.Sequential(*upsample)
 
-    def forward(self, input, net=None):
+    def forward(self, input, net=None, noise_features):
         """Standard forward"""
         #return self.model(input)
         image_features = self.model(input)
         if net is not None:
             image_features = net(image_features)
         out = self.upsample(image_features)
-        return out, image_features
+        # out = self.upsample(image_features - noise_features)
+        return out, image_feature
 
+    def get_features_diff(self, inputA, inputB, net=None):
+        A_features = self.model(inputA)
+        B_features = self.model(inputB)
+        diff = A_features - B_features
+        return diff
 
 class ResnetBlock(nn.Module):
     """Define a Resnet block"""

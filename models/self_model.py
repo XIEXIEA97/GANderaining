@@ -85,11 +85,19 @@ class Selfmodel(BaseModel):
         else:
             self.real_B = input['B'].to(self.device)
 
+    def get_features_diff(self):
+        if isinstance(self.netG, ResnetGenerator):
+            self.diff = self.netG.get_features_diff(self.real_A, self.real_B)
+            return self.diff
+        
+
     def forward(self):
         """Run forward pass; called by both functions <optimize_parameters> and <test>."""
         #self.fake_B = self.netG(self.real_A)  # G(A)
+        # def forward(self, input, net=None, noise_noise_features):
         if not self.paired:
-            self.fake_B, _ = self.netG(self.real_A)  # G(A)
+            self.fake_B, _ = self.netG(input=self.real_A, noise_noise_features=[])  # G(A)
+            print(ditto)
         else:
             self.fake_B, _ = self.netG(self.real_A, self.netT)  # G(A)
 

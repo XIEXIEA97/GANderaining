@@ -43,6 +43,16 @@ if __name__ == '__main__':
     visualizer = Visualizer(opt)   # create a visualizer that display/save images and plots
     total_iters = 0                # the total number of training iterations
 
+    diff = []
+    for i, data in enumerate(paired_dataset):
+        #why?
+        # only applicable to single model...
+        # paired is not defined in this method
+        model.set_input(data, False)
+        diff.append(model.get_features_diff())
+
+# function estimating noise
+
     for epoch in range(opt.epoch_count, opt.n_epochs + opt.n_epochs_decay + 1):    # outer loop for different epochs; we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>
         epoch_start_time = time.time()  # timer for entire epoch
         iter_data_time = time.time()    # timer for data loading per iteration
