@@ -87,8 +87,10 @@ class Selfmodel(BaseModel):
             self.real_B = input['B'].to(self.device)
 
     def get_feature_diff(self):
-        if isinstance(self.netG, ResnetGenerator):
-            self.diff = self.netG.get_features_diff(self.real_A, self.real_B)
+        # retrieves the module from DataParallel
+        module = self.netG.module
+        if isinstance(module, ResnetGenerator):
+            self.diff = module.get_features_diff(self.real_A, self.real_B)
             return self.diff
         
 

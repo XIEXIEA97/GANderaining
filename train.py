@@ -45,9 +45,6 @@ if __name__ == '__main__':
 
     diff = []
     for i, data in enumerate(paired_dataset):
-        #why?
-        # only applicable to single model...
-        # paired is not defined in this method
         model.set_input(data, False)
         diff.append(model.get_feature_diff())
 
@@ -72,6 +69,7 @@ if __name__ == '__main__':
             else:
                 run_dataset = paired_dataset
                 paired=True
+        
         for i, data in enumerate(run_dataset):  # inner loop within one epoch
             iter_start_time = time.time()  # timer for computation per iteration
             if total_iters % opt.print_freq == 0:
